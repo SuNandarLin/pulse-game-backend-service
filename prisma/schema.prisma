@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id                Int      @id @default(autoincrement())
+  auth_id           String?  
+  username          String
+  first_name        String
+  last_name         String
+  email             String
+  phone_number      String
+  address           String
+  postal_code       String
+  unit_number       String
+  profile_url       String?
+  accept_marketing  Boolean  @default(false)
+  userratings       user_rating[]
+  userwishlists     user_wishlist[]
+  post              post[]
+  comment           comment[]
+  reply             reply[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model game {
+  id                  Int      @id @default(autoincrement())
+  pulse_rating        Float    @default(0.0)
+  rated_userscount    Int?     @default(0)
+  userratings         user_rating[]
+  userwishlists       user_wishlist[]
+  posts               post[]
+}
+
+model user_rating {
+  id            Int    @id @default(autoincrement())
+  user          user?  @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  user_id       Int?
+  game          game?  @relation(fields: [game_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  game_id       Int?
+  ratings_count Int
+}
+
+model user_wishlist {
+  id       Int    @id @default(autoincrement())
+  user     user?  @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  user_id  Int?
+  game     game?  @relation(fields: [game_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  game_id  Int?
+}
+
+model post {
+  id                  Int     @id @default(autoincrement())
+  post_title          String  @default("")
+  post_desc           String  @default("")
+  upvote_count        Int?    @default(0)
+  downvote_count      Int?    @default(0)
+  upvoted_userids     Int[]   @default([])
+  downvoted_userids   Int[]   @default([])
+  user                user?   @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  user_id             Int?
+  game                game?   @relation(fields: [game_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  game_id             Int?  
+  comments            comment[]     
+}
+
+model comment {
+  id             Int    @id @default(autoincrement())
+  comment_text   String
+  vote           Int    @default(0)
+  user           user?  @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  user_id        Int?
+  post           post?  @relation(fields: [post_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  post_id        Int?
+  replies        reply[]
+}
+
+model reply {
+  id             Int      @id @default(autoincrement())
+  reply_text     String
+  vote           Int      @default(0)
+  user           user?    @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  user_id        Int?
+  comment        comment? @relation(fields: [comment_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  comment_id     Int?
+}
